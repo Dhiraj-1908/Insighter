@@ -1,28 +1,38 @@
-import { NextResponse } from "next/server";
-import { NewsResponse } from "./types";
+// app/api/news/route.ts
+import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'top';
+    const category = searchParams.get('category');
+
+    const apiParams = new URLSearchParams({
+      api_token: 'GGPcs88iY1KpIEvrvWJRWRKO5YGKrS2wsgd8DdiK',
+      language: 'en',
+      limit: '10'
+    });
+
+    if (category) {
+      apiParams.append('categories', category);
+    }
+
     const response = await fetch(
-      `https://api.mediastack.com/v1/news?access_key=${process.env.NEWS_API_KEY}&countries=in&limit=10&sort=published_desc`,
+      `https://api.thenewsapi.com/v1/news/${type}?${apiParams}`,
       {
         headers: {
-          "Content-Type": "application/json",
-        },
-        next: { revalidate: 300 } // Cache for 5 minutes
+          'Accept': 'application/json'
+        }
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch news from external API");
-    }
-
-    const data: NewsResponse = await response.json();
+    const data = await response.json();
     return NextResponse.json(data);
+
   } catch (error) {
-    console.error("News API Error:", error);
+    console.error('News API Error:', error);
     return NextResponse.json(
-      { error: "Failed to fetch news" },
+      { error: 'Failed to fetch news' },
       { status: 500 }
     );
   }
