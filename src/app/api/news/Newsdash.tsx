@@ -1,48 +1,95 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/app/components/card';
-import { ExternalLink, Clock, Globe } from 'lucide-react';
-import { NewsItem } from '@/app/api/news/types';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/tabs';
 import { Badge } from '@/app/components/badge';
+import { ExternalLink, Clock, Globe } from 'lucide-react';
 
-const NewsTicker = () => {
+interface NewsItem {
+  title: string;
+  description: string;
+  url: string;
+  source: string;
+  published_at: string;
+  categories: string[];
+}
+
+interface NewsResponse {
+  data: NewsItem[] | Record<string, NewsItem[]>;
+  meta?: {
+    found: number;
+    returned: number;
+    limit: number;
+    page: number;
+  };
+}
+
+const categories = [
+  'general',
+  'business',
+  'entertainment',
+  'health',
+  'science',
+  'sports',
+  'tech',
+  'politics'
+] as const;
+
+type NewsType = 'top' | 'headlines' | 'all';
+
+const NewsDashboard = () => {
+  const [activeTab, setActiveTab] = useState<NewsType>('top');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/news');
-      if (!response.ok) throw new Error('Failed to fetch news');
-      const data = await response.json();
-      setNews(data.data);
-      setIsLoading(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch news');
+      const params = new URLSearchParams({
+        api_token: 'GGPcs88iY1KpIEvrvWJRWRKO5YGKrS2wsgd8DdiK',
+        language: 'en',
+        categories: selectedCategory || ''
+      });
+
+      const response = await fetch(`https://api.thenewsapi.com/v1/news/${activeTab}?${params}`);
+      const data = await response.json() as NewsResponse;
+
+      if (!response.ok) {
+        throw new Error(data.meta?.found ? String(data.meta.found) : 'Failed to fetch news');
+      }
+
+      // Type guard to check if data.data is an array or record
+      const newsItems = Array.isArray(data.data) 
+        ? data.data 
+        : Object.values(data.data).flat();
+
+      // Validate and transform the data to ensure it matches NewsItem interface
+      const validatedNews: NewsItem[] = newsItems.map(item => ({
+        title: String(item.title || ''),
+        description: String(item.description || ''),
+        url: String(item.url || ''),
+        source: String(item.source || ''),
+        published_at: String(item.published_at || new Date().toISOString()),
+        categories: Array.isArray(item.categories) ? item.categories.map(String) : []
+      }));
+
+      setNews(validatedNews);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab, selectedCategory]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchNews();
-    const refreshInterval = setInterval(fetchNews, 300000);
-    return () => clearInterval(refreshInterval);
-  }, []);
+  }, [fetchNews]);
 
-  useEffect(() => {
-    if (news.length === 0) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => 
-        prevIndex === news.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [news.length]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
@@ -50,99 +97,111 @@ const NewsTicker = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-6xl mx-auto p-4">
-        <Card className="animate-pulse h-48">
-          <CardContent className="p-6">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="w-full max-w-6xl mx-auto p-4">
-        <Card className="border-red-200 h-48">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center h-full">
-              <p className="text-red-600 font-medium">Error: {error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="w-full max-w-4xl mx-auto p-4 border-red-200">
+        <CardContent className="p-6">
+          <div className="text-red-600">{error}</div>
+          <button 
+            onClick={fetchNews}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <AnimatePresence mode="wait">
-        {news[currentIndex] && (
-          <motion.div
-            key={news[currentIndex].title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+    <div className="w-full max-w-4xl mx-auto p-4">
+      <Tabs defaultValue="top" className="w-full" onValueChange={(value) => setActiveTab(value as NewsType)}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="top">Top Stories</TabsTrigger>
+          <TabsTrigger value="headlines">Headlines</TabsTrigger>
+          <TabsTrigger value="all">All News</TabsTrigger>
+        </TabsList>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Badge
+            variant={selectedCategory === '' ? 'default' : 'secondary'}
+            className="cursor-pointer"
+            onClick={() => setSelectedCategory('')}
           >
-            <Card className="overflow-hidden bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 h-48">
-              <CardContent className="p-6">
-                <div className="flex flex-col h-full justify-between">
+            All
+          </Badge>
+          {categories.map((category) => (
+            <Badge
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'secondary'}
+              className="cursor-pointer"
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </Badge>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {news.map((item, index) => (
+              <Card key={index} className="bg-white shadow hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-2">
-                    <Badge variant="secondary" className="text-xs">
-                      Breaking News
-                    </Badge>
+                    <div className="flex gap-2">
+                      {item.categories.map((cat: string) => (
+                        <Badge key={cat} variant="secondary" className="text-xs">
+                          {cat}
+                        </Badge>
+                      ))}
+                    </div>
                     <a
-                      href={news[currentIndex].url}
+                      href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 transition-colors p-1 hover:bg-blue-50 rounded-full"
-                      aria-label="Open article in new tab"
+                      className="text-blue-600 hover:text-blue-800"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
                   
-                  <div className="flex-grow overflow-hidden">
-                    <h3 className="font-semibold text-xl text-gray-900 leading-tight mb-2 line-clamp-2">
-                      {news[currentIndex].title}
-                    </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                      {news[currentIndex].description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-2 border-t border-gray-100 mt-2">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <Globe className="w-3.5 h-3.5" />
-                      <span className="font-medium">{news[currentIndex].source}</span>
+                  <h3 className="font-semibold text-xl text-gray-900 mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    {item.description}
+                  </p>
+                  
+                  <div className="flex items-center gap-4 mt-4 pt-4 border-t">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Globe className="w-4 h-4" />
+                      <span>{item.source}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{formatDate(news[currentIndex].published_at)}</span>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDate(item.published_at)}</span>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
-      </AnimatePresence>
-      
-      <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-blue-500 rounded-full"
-          initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-        />
-      </div>
+      </Tabs>
     </div>
   );
 };
 
-export default NewsTicker;
+export default NewsDashboard;

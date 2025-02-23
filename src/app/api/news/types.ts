@@ -1,25 +1,30 @@
-// types.ts
+export interface NewsMetadata {
+  found: number;
+  returned: number;
+  limit: number;
+  page: number;
+}
+
 export interface NewsItem {
-  author: string | null;
+  uuid: string;
   title: string;
   description: string;
+  keywords: string;
+  snippet: string;
   url: string;
-  source: string;
-  image: string | null;
-  category: string;
+  image_url: string;
   language: string;
-  country: string;
   published_at: string;
+  source: string;
+  categories: string[];
+  locale: string;
+  similar?: NewsItem[];
 }
 
 export interface NewsResponse {
-  pagination: {
-    limit: number;
-    offset: number;
-    count: number;
-    total: number;
-  };
+  meta: NewsMetadata;
   data: NewsItem[];
 }
 
 export type NewsCategory = 'general' | 'business' | 'entertainment' | 'health' | 'science' | 'sports' | 'technology';
+export type NewsType = 'headlines' | 'top' | 'all';

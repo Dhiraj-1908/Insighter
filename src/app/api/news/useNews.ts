@@ -1,33 +1,76 @@
 // hooks/useNews.ts
-import { useState, useEffect } from 'react';
-import { NewsItem, NewsCategory, NewsResponse } from './types';
+import { useState, useEffect, useCallback } from 'react';
 
-export function useNews(category: NewsCategory, refreshInterval: number = 300000) {
-  const [news, setNews] = useState<NewsItem[]>([]);
+export type NewsType = 'headlines' | 'top' | 'all';
+
+interface NewsItem {
+  title: string;
+  description: string;
+  url: string;
+  source: string;
+  published_at: string;
+  categories: string[];
+}
+
+interface NewsResponse {
+  data: NewsItem[] | Record<string, NewsItem[]>; // Allow object or array
+  meta?: {
+    found: number;
+    returned: number;
+    limit: number;
+    page: number;
+  };
+}
+
+interface UseNewsProps {
+  type: NewsType;
+  category?: string;
+  page?: number;
+}
+
+export function useNews({ type, category, page = 1 }: UseNewsProps) {
+  const [news, setNews] = useState<NewsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchNews() {
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const response = await fetch(`/api/news?category=${category}&limit=10`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch news');
+      const params = new URLSearchParams({
+        type,
+        page: page.toString()
+      });
+
+      if (category && category !== 'all') {
+        params.append('category', category);
       }
-      const data: NewsResponse = await response.json();
-      setNews(data.data);
+
+      const response = await fetch(`/api/news?${params.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || data.details || 'Failed to fetch news');
+      }
+
+      setNews(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch news');
+      console.error('News fetch error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching news');
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [type, category, page]);
 
   useEffect(() => {
-    setIsLoading(true);
     fetchNews();
-    const interval = setInterval(fetchNews, refreshInterval);
-    return () => clearInterval(interval);
-  }, [category, refreshInterval]);
+  }, [fetchNews]);
 
-  return { news, isLoading, error };
+  return {
+    news,
+    isLoading,
+    error,
+    refetch: fetchNews,
+  };
 }
