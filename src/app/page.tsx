@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Message, Source } from "@/lib/types";
 import { SourceBar } from "./components/SourceBar";
 import NewsTicker from "./api/news/Newsdash";
-import WeatherWidget from "./api/widget/page";
-import { Card, CardContent } from "./components/card";
 import WeatherWidgetSwitcher from "./api/widget/helper";
 import AIResponseFormatter from "./api/chat/formatar";
 import PrismaticLogo from "@/components/prismaticlogo";
+import NewsDashboard from "./api/news/Newsdash";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -202,7 +201,7 @@ export default function Chat() {
                     Trending Now
                   </h2>
                   <div className="h-[250px] overflow-hidden rounded-xl">
-                    <NewsTicker />
+                    <NewsDashboard />
                   </div>
                 </div>
               </div>
