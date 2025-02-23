@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 import React, { useEffect } from 'react';
 
 declare global {
@@ -9,18 +10,21 @@ declare global {
   }
 }
 
-interface WeatherWidgetProps {}
+interface WeatherWidgetProps {
+  widgetType: "aqiMini" | "upcoming"; // Add prop type
+}
 
-const WeatherWidget: React.FC<WeatherWidgetProps> = () => {
+const WeatherWidget: React.FC<WeatherWidgetProps> = ({ widgetType }) => {
   const config = {
     apiKey: "ANT6VfFGx0QsHTWpnNemSAB9YrLLzGaw",
     language: "EN",
     unitSystem: "METRIC" as const,
     skin: "dark" as const,
-    widgetType: "aqiMini",
+    widgetType: widgetType, // Use prop here
     className: ""
   };
-    useEffect(() => {
+
+  useEffect(() => {
     const initializeWidget = () => {
       const id = 'tomorrow-sdk';
       if (document.getElementById(id)) {
@@ -43,9 +47,9 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = () => {
 
   return (
     <div 
-    className={`tomorrow ${config.className}`}
-    data-language={config.language}
-    data-unit-system={config.unitSystem}
+      className={`tomorrow ${config.className}`}
+      data-language={config.language}
+      data-unit-system={config.unitSystem}
       data-skin={config.skin}
       data-widget-type={config.widgetType}
       data-api-key={config.apiKey}
@@ -62,7 +66,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = () => {
           left: '10%' 
         }}
       >
-        <img
+        <Image
           alt="Powered by the Tomorrow.io Weather API"
           src="https://weather-website-client.tomorrow.io/img/powered-by.svg"
           width="10"

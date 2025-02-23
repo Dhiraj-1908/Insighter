@@ -8,7 +8,7 @@ const WeatherWidgetSwitcher = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setShowFirstWidget((prev) => !prev);
-    }, 1 * 60 * 1000); // 30 seconds for testing, adjust as needed
+    }, 1 * 60 * 1000); // Switch every minute
 
     return () => clearInterval(interval);
   }, []);
@@ -25,7 +25,7 @@ const WeatherWidgetSwitcher = () => {
             transition={{ duration: 0.5 }}
             className="w-full h-full"
           >
-            <WeatherWidget />
+            <WeatherWidget widgetType="aqiMini" />
           </motion.div>
         ) : (
           <motion.div
@@ -34,8 +34,9 @@ const WeatherWidgetSwitcher = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
+            className="w-full h-full"
           >
-            <WeatherWidget />
+            <WeatherWidget widgetType="upcoming" />
           </motion.div>
         )}
       </AnimatePresence>
