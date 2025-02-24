@@ -103,7 +103,7 @@ const AIResponseFormatter: React.FC<AIResponseFormatterProps> = ({ content }) =>
     <div className="bg-white text-xs">
       {sections.map((section, sectionIndex) => (
         <section key={sectionIndex} className="mb-4">
-          <h2 className="text-[13px] mb-2 text-gray-800 border-b pb-1">
+          <h2 className="text-[15px] mb-2 text-gray-800 border-b pb-1">
             {section.title}
           </h2>
           <div className="pl-2">
