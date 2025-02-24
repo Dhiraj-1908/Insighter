@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import WeatherWidget from "./page";
+import WeatherWidget from "../../../components/page";
 
 const WeatherWidgetSwitcher = () => {
   const [showFirstWidget, setShowFirstWidget] = useState(true);
