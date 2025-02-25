@@ -182,7 +182,7 @@ const InsighterLogo = ({ className = "" }) => {
                 letterSpacing="0"
                 fill="black"
               >
-                <tspan>Insighter</tspan>
+                <tspan>Insighter.ai</tspan>
                 <animate
                   attributeName="opacity"
                   values="1;0.8;1"
@@ -232,7 +232,7 @@ const InsighterLogo = ({ className = "" }) => {
 
               {/* Second underline (right side) - starts after the 'g' */}
               <path
-                d="M145,1 L260,1"
+                d="M145,1 L350,1"
                 stroke="#2838eb"
                 strokeWidth="9"
                 fill="none"
@@ -248,7 +248,7 @@ const InsighterLogo = ({ className = "" }) => {
               </path>
 
               {/* Magnifying glass at the end of line */}
-              <g transform="translate(280, 2) scale(0.7)">
+              <g transform="translate(360, -9) scale(0.7)">
                 {/* Handle */}
                 <path
                   d="M0,0 L15,15"
