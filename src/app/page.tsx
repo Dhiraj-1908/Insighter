@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, Source } from "@/lib/types";
 import { SourceBar } from "./components/SourceBar";
-import NewsTicker from "./api/news/Newsdash";
 import WeatherWidgetSwitcher from "./api/widget/helper";
 import AIResponseFormatter from "./api/chat/formatar";
 import PrismaticLogo from "@/components/prismaticlogo";
 import NewsDashboard from "./api/news/Newsdash";
+import InsighterLogo from "@/components/prismaticlogo";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -141,14 +141,14 @@ export default function Chat() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-   <div className="w-full flex justify-start p-2 md:p-1 pb-0">
-  <PrismaticLogo className="h-10 md:h-20" />
-</div>
+              <div className="w-full flex justify-start p-2 md:p-1 pb-0">
+                <InsighterLogo className="h-10 md:h-20" />
+              </div>
               {/* Main content area */}
               <div className="flex-grow flex flex-col md:flex-row p-4 md:p-8">
                 {/* Mobile: Weather -> Input -> Trending */}
                 {/* Desktop: Weather + Input side by side, Trending at bottom */}
-                
+
                 {/* Weather Widget Section - Full width on mobile, half on desktop */}
                 <div className="md:w-1/2 w-full flex ">
                   <div className="rounded-3xl ">
@@ -195,8 +195,19 @@ export default function Chat() {
               <div className="w-full p-4 md:p-8 pt-0">
                 <div className="bg-white rounded-2xl shadow-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                      />
                     </svg>
                     Trending Now
                   </h2>
@@ -213,8 +224,8 @@ export default function Chat() {
               animate={{ opacity: 1 }}
             >
               <div className="w-full flex justify-end p-2 md:p-1 pb-0">
-  <PrismaticLogo className="h-10 md:h-20" />
-</div>
+                <PrismaticLogo className="h-10 md:h-20" />
+              </div>
               {/* Chat messages section */}
               <div className="flex-1 overflow-y-auto">
                 <div className="p-4 md:p-8 space-y-6">
@@ -227,18 +238,30 @@ export default function Chat() {
                         exit={{ opacity: 0 }}
                         className="w-full mx-auto"
                       >
-                        <div className={`bg-white rounded-2xl shadow-lg p-6 ${
-                          message.role === "user" ? "ml-auto max-w-[80%] bg-gray-800 text-black" : "mr-auto max-w-[80%]"
-                        }`}>
+                        <div
+                          className={`bg-white rounded-2xl shadow-lg p-6 ${
+                            message.role === "user"
+                              ? "ml-auto max-w-[80%] bg-gray-800 text-black"
+                              : "mr-auto max-w-[80%]"
+                          }`}
+                        >
                           <div className="flex flex-col">
-                            <span className={`text-sm mb-2 ${message.role === "user" ? "text-gray-900 font-bold" : "text-gray-500"}`}>
+                            <span
+                              className={`text-sm mb-2 ${
+                                message.role === "user"
+                                  ? "text-gray-900 font-bold"
+                                  : "text-gray-500"
+                              }`}
+                            >
                               {message.role === "user" ? "You" : "Assistant"}
                             </span>
                             <div className="text-lg">
                               {message.role === "user" ? (
                                 message.content
                               ) : (
-                                <AIResponseFormatter content={message.content} />
+                                <AIResponseFormatter
+                                  content={message.content}
+                                />
                               )}
                             </div>
                             {message.sources && message.sources.length > 0 && (
