@@ -1,4 +1,3 @@
-
 import { openRouter, DEEPSEEK_MODEL } from "@/lib/openrouter";
 import { searchInternet } from "@/lib/tavily";
 import { Source } from "@/lib/types";
@@ -20,8 +19,7 @@ export async function POST(req: Request) {
         url: result.url,
         date: result.published_date || "N/A",
         domain: new URL(result.url).hostname,
-        // Update the favicon generation in the sources mapping
-favicon: `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(result.url)}&size=32`,
+        favicon: `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(result.url)}&size=32`,
       })) || [];
 
     // Create a search context and sources list
@@ -73,8 +71,8 @@ clean bullet points
     ✓ Academic tone with professional formatting`,
     };
 
-     // Create the stream
-     const stream = await openRouter.chat.completions.create({
+    // Create the stream
+    const stream = await openRouter.chat.completions.create({
       model: DEEPSEEK_MODEL,
       messages: [systemMessage, ...messages],
       stream: true,
@@ -82,23 +80,25 @@ clean bullet points
       max_tokens: 4000,
     });
 
-    // Update the combinedStream creation:
-const combinedStream = new ReadableStream({
-  async start(controller) {
-    // Send sources as proper SSE
-    controller.enqueue(`event: sources\n`);
-    controller.enqueue(`data: ${JSON.stringify({ sources })}\n\n`);
-    
-    // Stream AI response
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
-        controller.enqueue(`data: ${content}\n\n`);
+    // Create a text encoder for converting strings to Uint8Array
+    const encoder = new TextEncoder();
+
+    // Create a properly formatted stream that returns bytes
+    const combinedStream = new ReadableStream({
+      async start(controller) {
+        // Send sources as SSE but properly encoded as bytes
+        controller.enqueue(encoder.encode(`event: sources\ndata: ${JSON.stringify({ sources })}\n\n`));
+        
+        // Stream AI response as bytes
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          if (content) {
+            controller.enqueue(encoder.encode(`data: ${content}\n\n`));
+          }
+        }
+        controller.close();
       }
-    }
-    controller.close();
-  }
-});
+    });
 
     return new Response(combinedStream, {
       headers: {
