@@ -236,13 +236,21 @@ export default function Chat() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="w-full mx-auto"
+                        className={`w-full mx-auto flex ${
+                          message.role === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
                       >
                         <div
-                          className={`bg-white rounded-2xl shadow-lg p-6 ${
+                          className={`rounded-2xl shadow-lg p-4 md:p-6 ${
                             message.role === "user"
-                              ? "ml-auto max-w-[80%] bg-gray-800 text-black"
-                              : "mr-auto max-w-[80%]"
+                              ? "bg-gray-800 text-black"
+                              : "bg-white"
+                          } ${
+                            message.role === "user"
+                              ? "max-w-[90%] sm:max-w-[80%]"
+                              : "max-w-[100%] sm:max-w-[90%] md:max-w-[85%]"
                           }`}
                         >
                           <div className="flex flex-col">
@@ -255,7 +263,7 @@ export default function Chat() {
                             >
                               {message.role === "user" ? "You" : "Assistant"}
                             </span>
-                            <div className="text-lg">
+                            <div className="text-base md:text-lg break-words">
                               {message.role === "user" ? (
                                 message.content
                               ) : (
@@ -277,7 +285,6 @@ export default function Chat() {
                   <div ref={messagesEndRef} />
                 </div>
               </div>
-
               {/* Input section at bottom */}
               <div className="border-t p-6">
                 <form
