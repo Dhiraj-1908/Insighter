@@ -8,7 +8,7 @@ const WeatherWidgetSwitcher = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setShowFirstWidget((prev) => !prev);
-    }, 1 * 60 * 1000); // Switch every minute
+    }, 0.5 * 60 * 1000); // Switch every minute
 
     return () => clearInterval(interval);
   }, []);
